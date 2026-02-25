@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Energy - Professional Dashboard</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg: #0f111a; 
+            --card: #1e2130; 
+            --primary: #00d2ff; /* เปลี่ยนเป็นสี Tech Blue */
+            --text-main: #ffffff; 
+            --text-muted: #8b92a5; 
+            --success: #00e676; 
+            --danger: #ff4b4b;
+            --border: rgba(255, 255, 255, 0.05);
+        }
+        body { 
+            font-family: 'Inter', 'Prompt', sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+        }
+        .container { width: 100%; max-width: 1000px; }
+        
+        /* 1. จัดเลย์เอาต์ส่วนหัวใหม่ให้อยู่ในบรรทัดเดียวกัน */
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding-bottom: 20px; 
+            border-bottom: 1px solid var(--border); 
+            margin-bottom: 25px; 
+        }
+        h1 { 
+            font-size: 1.5rem;
+            color: var(--text-main); 
+            margin: 0; 
+            letter-spacing: 1px; 
+            font-weight: 700;
+        }
+        .header-info {
+            text-align: right;
+        }
+        #status { 
+            font-size: 0.85rem; 
+            color: var(--danger); 
+            font-weight: 600;
+        }
+        #status.online { 
+            color: var(--success); 
+        }
+        .time-badge { 
+            color: var(--text-muted); 
+            font-size: 0.85rem; 
+            margin-top: 4px;
+        }
+        .time-badge span { 
+            color: var(--text-main); 
+        }
+
+        /* 2. จัดเรียงกลุ่มปุ่มใหม่ */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        /* 3. ทำปุ่ม Board ให้เป็นลักษณะ Segmented Control */
+        .tabs { 
+            display: inline-flex; 
+            background: var(--card); 
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .tab { 
+            padding: 8px 24px; 
+            color: var(--text-muted); 
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            font-size: 0.9rem;
+            font-weight: 600; 
+        }
+        .tab:hover {
+            color: var(--text-main);
+        }
+        .tab.active { 
+            background: var(--primary); 
+            color: #000; 
+            box-shadow: 0 2px 8px rgba(0, 210, 255, 0.3); 
+        }
+        
+        /* 4. ปรับปุ่ม Export ให้เป็นปุ่มรอง (Secondary Action) */
+        .export-btn { 
+            padding: 8px 16px; 
+            background: transparent; 
+            border: 1px solid var(--text-muted); 
+            color: var(--text-muted); 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 0.85rem;
+            font-weight: 600; 
+            font-family: inherit; 
+            transition: all 0.2s ease; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+        }
+        .export-btn:hover { 
+            border-color: var(--text-main); 
+            color: var(--text-main); 
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* 5. ปรับสไตล์การ์ด ถอดขอบสีด้านบนออก ใช้สีและเงาให้ดูมินิมอล */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 15px; 
+            margin-bottom: 25px; 
+        }
+        .card { 
+            background: var(--card); 
+            padding: 20px 15px; 
+            border-radius: 12px; 
+            text-align: center; 
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); 
+        }
+        .label { 
+            color: var(--text-muted); 
+            font-size: 0.85rem; 
+            margin-bottom: 8px; 
+            font-weight: 400;
+        }
+        .value { 
+            font-size: 2rem; 
+            font-weight: 700; 
+            margin-bottom: 4px; 
+            color: var(--text-main);
+        }
+        .unit { 
+            color: var(--text-muted); /* ลดความเด่นของหน่วย */
+            font-size: 0.85rem; 
+        }
+
+        /* 6. ส่วนของกราฟ เพิ่ม Header และ Title */
+        .chart-container {
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin: 0;
+        }
+        .chart-box { 
+            height: 280px; 
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>SMART ENERGY MONITOR</h1>
+        <div class="header-info">
+            <div id="status">● MQTT Connecting...</div>
+            <div class="time-badge">อัปเดตล่าสุด: <span id="time">--:--:--</span></div>
+        </div>
+    </header>
+
+    <div class="controls">
+        <div class="tabs">
+            <div class="tab active" id="btn1" onclick="setBoard('Board1')">Board 1</div>
+            <div class="tab" id="btn2" onclick="setBoard('Board2')">Board 2</div>
+        </div>
+        <button class="export-btn" onclick="exportCSV()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export CSV
+        </button>
+    </div>
+
+    <div class="grid">
+        <div class="card"><div class="label">แรงดัน (Voltage)</div><div class="value" id="v">0.0</div><div class="unit">V</div></div>
+        <div class="card"><div class="label">กระแส (Current)</div><div class="value" id="i">0.00</div><div class="unit">A</div></div>
+        <div class="card"><div class="label">กำลังไฟ (Power)</div><div class="value" id="p">0.0</div><div class="unit">W</div></div>
+        <div class="card"><div class="label">พลังงาน (Energy)</div><div class="value" id="e">0.000</div><div class="unit">kWh</div></div>
+        <div class="card"><div class="label">ค่าไฟประมาณการ</div><div class="value" id="cost">0.00</div><div class="unit">THB</div></div>
+    </div>
+    
+    <div class="chart-container">
+        <div class="chart-header">
+            <h3 class="chart-title">แนวโน้มกำลังไฟฟ้า (Power Trend)</h3>
+        </div>
+        <div class="chart-box"><canvas id="mainChart"></canvas></div>
+    </div>
+</div>
+
+<script>
+    const config = {
+        host: 'd0436a03f0e647899579c81f01d12b76.s1.eu.hivemq.cloud',
+        port: 8884,
+        topic: 'smart_energy/monitor/data',
+        user: 'BRJUU', pass: 'Barajuu0',
+        elecRate: 4.7
+    };
+
+    let activeBoard = 'Board1';
+    
+    let storage = { 
+        'Board1': {t:'--:--:--', v:0, i:0, p:0, e:0, h:Array(20).fill(0), log:[]}, 
+        'Board2': {t:'--:--:--', v:0, i:0, p:0, e:0, h:Array(20).fill(0), log:[]} 
+    };
+
+    const client = mqtt.connect(`wss://${config.host}:${config.port}/mqtt`, {
+        username: config.user, password: config.pass,
+        clientId: 'gh_dash_' + Math.random().toString(16).slice(2, 10)
+    });
+
+    client.on('connect', () => {
+        const s = document.getElementById('status');
+        s.innerHTML = '● MQTT ONLINE';
+        s.className = 'online';
+        client.subscribe(config.topic);
+    });
+
+    client.on('message', (topic, message) => {
+        try {
+            const data = JSON.parse(message.toString());
+            if (storage[data.Node]) {
+                const timeStr = data.Time || new Date().toLocaleTimeString('th-TH');
+                
+                storage[data.Node].t = timeStr;
+                storage[data.Node].v = data.V;
+                storage[data.Node].i = data.I;
+                storage[data.Node].p = data.P;
+                storage[data.Node].e = data.E;
+                storage[data.Node].h = [...storage[data.Node].h, data.P].slice(-20);
+                
+                storage[data.Node].log.push({ t: timeStr, v: data.V, i: data.I, p: data.P, e: data.E });
+                if(storage[data.Node].log.length > 2000) storage[data.Node].log.shift();
+
+                if (data.Node === activeBoard) updateDisplay();
+            }
+        } catch(e) {}
+    });
+
+    const ctx = document.getElementById('mainChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: { 
+            labels: Array(20).fill(''), 
+            datasets: [{ 
+                label: 'Power (Watt)', 
+                data: storage[activeBoard].h, 
+                borderColor: '#00d2ff', 
+                backgroundColor: 'rgba(0, 210, 255, 0.1)', 
+                fill: true, 
+                borderWidth: 2,
+                pointRadius: 0, /* ซ่อนจุดในกราฟให้เส้นดูสมูทและเป็นระเบียบ */
+                tension: 0.4 
+            }] 
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            scales: { 
+                y: { 
+                    min: 0, 
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#8b92a5', font: { family: 'Inter' } } 
+                }, 
+                x: { 
+                    display: false 
+                } 
+            }, 
+            plugins: { 
+                legend: { 
+                    display: true, 
+                    position: 'top', /* ย้าย Legend ไปด้านบน */
+                    align: 'end',
+                    labels: { 
+                        color: '#8b92a5',
+                        boxWidth: 12,
+                        usePointStyle: true,
+                        font: { family: 'Inter', size: 12 }
+                    } 
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+
+    function updateDisplay() {
+        const d = storage[activeBoard];
+        document.getElementById('time').innerText = d.t;
+        document.getElementById('v').innerText = d.v.toFixed(1);
+        document.getElementById('i').innerText = d.i.toFixed(2);
+        document.getElementById('p').innerText = d.p.toFixed(1);
+        document.getElementById('e').innerText = d.e.toFixed(3);
+        
+        const cost = d.e * config.elecRate;
+        document.getElementById('cost').innerText = cost.toFixed(2);
+
+        chart.data.datasets[0].data = d.h;
+        chart.update('none');
+    }
+
+    function setBoard(id) {
+        activeBoard = id;
+        document.getElementById('btn1').className = id === 'Board1' ? 'tab active' : 'tab';
+        document.getElementById('btn2').className = id === 'Board2' ? 'tab active' : 'tab';
+        updateDisplay();
+    }
+
+    function exportCSV() {
+        const logData = storage[activeBoard].log;
+        if(logData.length === 0) {
+            alert('ยังไม่มีข้อมูลสำหรับโหลด กรุณารอกราฟแสดงข้อมูลแล้วลองอีกครั้ง');
+            return;
+        }
+
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "Time,Voltage(V),Current(A),Power(W),Energy(kWh)\r\n";
+
+        logData.forEach(row => {
+            csvContent += `${row.t},${row.v},${row.i},${row.p},${row.e}\r\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `${activeBoard}_Energy_Data.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+</body>
+</html>
