@@ -208,7 +208,7 @@
 
                 storage[data.Node].p = data.P;
 
-                storage[data.Node].e += parseFloat(data.E);
+                storage[data.Node].e = data.E;
 
                 storage[data.Node].h = [...storage[data.Node].h, data.P].slice(-20);
 
@@ -356,3 +356,4 @@
 
 
 </html>
+
