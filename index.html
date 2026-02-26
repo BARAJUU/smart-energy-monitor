@@ -11,7 +11,7 @@
         :root { 
             --bg: #0f111a; 
             --card: #1e2130; 
-            --primary: #00d2ff; /* เปลี่ยนเป็นสี Tech Blue */
+            --primary: #00d2ff; 
             --text-main: #ffffff; 
             --text-muted: #8b92a5; 
             --success: #00e676; 
@@ -29,7 +29,6 @@
         }
         .container { width: 100%; max-width: 1000px; }
         
-        /* 1. จัดเลย์เอาต์ส่วนหัวใหม่ให้อยู่ในบรรทัดเดียวกัน */
         header { 
             display: flex; 
             justify-content: space-between; 
@@ -45,27 +44,12 @@
             letter-spacing: 1px; 
             font-weight: 700;
         }
-        .header-info {
-            text-align: right;
-        }
-        #status { 
-            font-size: 0.85rem; 
-            color: var(--danger); 
-            font-weight: 600;
-        }
-        #status.online { 
-            color: var(--success); 
-        }
-        .time-badge { 
-            color: var(--text-muted); 
-            font-size: 0.85rem; 
-            margin-top: 4px;
-        }
-        .time-badge span { 
-            color: var(--text-main); 
-        }
+        .header-info { text-align: right; }
+        #status { font-size: 0.85rem; color: var(--danger); font-weight: 600; }
+        #status.online { color: var(--success); }
+        .time-badge { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+        .time-badge span { color: var(--text-main); }
 
-        /* 2. จัดเรียงกลุ่มปุ่มใหม่ */
         .controls {
             display: flex;
             justify-content: space-between;
@@ -75,7 +59,6 @@
             gap: 15px;
         }
 
-        /* 3. ทำปุ่ม Board ให้เป็นลักษณะ Segmented Control */
         .tabs { 
             display: inline-flex; 
             background: var(--card); 
@@ -92,17 +75,21 @@
             font-size: 0.9rem;
             font-weight: 600; 
         }
-        .tab:hover {
-            color: var(--text-main);
-        }
+        .tab:hover { color: var(--text-main); }
         .tab.active { 
             background: var(--primary); 
             color: #000; 
             box-shadow: 0 2px 8px rgba(0, 210, 255, 0.3); 
         }
         
-        /* 4. ปรับปุ่ม Export ให้เป็นปุ่มรอง (Secondary Action) */
-        .export-btn { 
+        /* จัดกลุ่มปุ่ม Action ให้อยู่ด้วยกัน */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* เปลี่ยนคลาส export-btn เป็น action-btn เพื่อใช้ร่วมกัน */
+        .action-btn { 
             padding: 8px 16px; 
             background: transparent; 
             border: 1px solid var(--text-muted); 
@@ -117,13 +104,18 @@
             align-items: center; 
             gap: 6px; 
         }
-        .export-btn:hover { 
+        .action-btn:hover { 
             border-color: var(--text-main); 
             color: var(--text-main); 
             background: rgba(255, 255, 255, 0.05);
         }
+        /* สีเฉพาะเวลา Hover ปุ่ม Reset */
+        .btn-reset:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: rgba(255, 75, 75, 0.1);
+        }
 
-        /* 5. ปรับสไตล์การ์ด ถอดขอบสีด้านบนออก ใช้สีและเงาให้ดูมินิมอล */
         .grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
@@ -138,24 +130,10 @@
             border: 1px solid var(--border);
             box-shadow: 0 4px 6px rgba(0,0,0,0.2); 
         }
-        .label { 
-            color: var(--text-muted); 
-            font-size: 0.85rem; 
-            margin-bottom: 8px; 
-            font-weight: 400;
-        }
-        .value { 
-            font-size: 2rem; 
-            font-weight: 700; 
-            margin-bottom: 4px; 
-            color: var(--text-main);
-        }
-        .unit { 
-            color: var(--text-muted); /* ลดความเด่นของหน่วย */
-            font-size: 0.85rem; 
-        }
+        .label { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 8px; font-weight: 400; }
+        .value { font-size: 2rem; font-weight: 700; margin-bottom: 4px; color: var(--text-main); }
+        .unit { color: var(--text-muted); font-size: 0.85rem; }
 
-        /* 6. ส่วนของกราฟ เพิ่ม Header และ Title */
         .chart-container {
             background: var(--card);
             border-radius: 12px;
@@ -163,22 +141,9 @@
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .chart-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-main);
-            margin: 0;
-        }
-        .chart-box { 
-            height: 280px; 
-            position: relative;
-        }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .chart-title { font-size: 1rem; font-weight: 600; color: var(--text-main); margin: 0; }
+        .chart-box { height: 280px; position: relative; }
     </style>
 </head>
 <body>
@@ -197,10 +162,17 @@
             <div class="tab active" id="btn1" onclick="setBoard('Board1')">Board 1</div>
             <div class="tab" id="btn2" onclick="setBoard('Board2')">Board 2</div>
         </div>
-        <button class="export-btn" onclick="exportCSV()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            Export CSV
-        </button>
+        
+        <div class="action-buttons">
+            <button class="action-btn btn-reset" onclick="resetData()" title="ล้างค่าข้อมูลบนหน้าจอ">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                Reset
+            </button>
+            <button class="action-btn" onclick="exportCSV()" title="ดาวน์โหลดไฟล์ CSV">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Export CSV
+            </button>
+        </div>
     </div>
 
     <div class="grid">
@@ -280,7 +252,7 @@
                 backgroundColor: 'rgba(0, 210, 255, 0.1)', 
                 fill: true, 
                 borderWidth: 2,
-                pointRadius: 0, /* ซ่อนจุดในกราฟให้เส้นดูสมูทและเป็นระเบียบ */
+                pointRadius: 0, 
                 tension: 0.4 
             }] 
         },
@@ -293,32 +265,16 @@
                     grid: { color: 'rgba(255, 255, 255, 0.05)' },
                     ticks: { color: '#8b92a5', font: { family: 'Inter' } } 
                 }, 
-                x: { 
-                    display: false 
-                } 
+                x: { display: false } 
             }, 
             plugins: { 
                 legend: { 
-                    display: true, 
-                    position: 'top', /* ย้าย Legend ไปด้านบน */
-                    align: 'end',
-                    labels: { 
-                        color: '#8b92a5',
-                        boxWidth: 12,
-                        usePointStyle: true,
-                        font: { family: 'Inter', size: 12 }
-                    } 
+                    display: true, position: 'top', align: 'end',
+                    labels: { color: '#8b92a5', boxWidth: 12, usePointStyle: true, font: { family: 'Inter', size: 12 } } 
                 },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                }
+                tooltip: { mode: 'index', intersect: false }
             },
-            interaction: {
-                mode: 'nearest',
-                axis: 'x',
-                intersect: false
-            }
+            interaction: { mode: 'nearest', axis: 'x', intersect: false }
         }
     });
 
@@ -342,6 +298,19 @@
         document.getElementById('btn1').className = id === 'Board1' ? 'tab active' : 'tab';
         document.getElementById('btn2').className = id === 'Board2' ? 'tab active' : 'tab';
         updateDisplay();
+    }
+
+    // ฟังก์ชัน Reset ล้างค่าข้อมูลทั้งหมดให้เป็น 0
+    function resetData() {
+        if(confirm('คุณต้องการรีเซ็ตข้อมูลและกราฟทั้งหมดใช่หรือไม่?')) {
+            // คืนค่า storage กลับไปเป็นค่าว่างตั้งต้น
+            storage = { 
+                'Board1': {t:'--:--:--', v:0, i:0, p:0, e:0, h:Array(20).fill(0), log:[]}, 
+                'Board2': {t:'--:--:--', v:0, i:0, p:0, e:0, h:Array(20).fill(0), log:[]} 
+            };
+            // สั่งอัปเดตหน้าจอทันทีเพื่อแสดงผลเลข 0 และกราฟเปล่าๆ
+            updateDisplay();
+        }
     }
 
     function exportCSV() {
